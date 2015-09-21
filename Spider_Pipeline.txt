@@ -1,0 +1,245 @@
+MEME:
+
+MEME Motif Identification:
+
+source .bash_profile
+echo $LD_LIBRARY_PATH
+
+MEME_scaffold_25678_47904 
+
+Dependencies:
+Python 2.7, pandas, numpy, matplotlib      
+
+1. DIRECTORIES and INPUT FILES
+------------------------------------------------------------------------------------------------------
+# Note: You don't have to create the folder beforehand. (The program creates the folder for you)
+python spider_pipeline_runner.py -mk 042215_meme_scaffold_25678_47904
+
+042215_meme_scaffold_25678_47904/
+  logo_rawfiles/
+  motif_pwm_entries/
+  motif_variant_list/
+
+
+1.1 DOWNLOAD SEQUENCE
+------------------------------------------------------------------------------------------------------
+scp 042215_silk_scaffold_25678_47904_AA.fasta pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/042215_meme_scaffold_25678_47904
+
+
+2. RUNNING MEME
+------------------------------------------------------------------------------------------------------
+# RUN MEME With MultiThreading
+# WD: /project/voight_spiders/nephila/meme
+# Required: -c to specify that you are submitting jobs onto the cluster
+# Optional: use -t # to specify the amount of threads you want to use
+# Optional: use -m to specify which machine to use
+# Optional: use -rna to change the name of the meme run ex. meme_v2 instead of meme_v1
+python spider_pipeline_runner.py -c -rme 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta
+
+#RUN MEME Without MultiThreading
+# WD: /project/voight_spiders/nephila/meme
+# Required: -c to specify that you are submitting jobs onto the cluster
+# Required: if not using multi threading you must specify queue
+# Optional: use -m to specify which machine to use
+# Optional: use -rna to change the name of the meme run ex. meme_v2 instead of meme_v1
+python spider_pipeline_runner.py -c -rme 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta -nt -q voight_normal
+
+#RUN MEME Locally
+# WD: /project/voight_spiders/nephila/meme
+# Optional: use -rna to change the name of the meme run ex. meme_v2 instead of meme_v1
+python spider_pipeline_runner.py -rme 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 
+
+2.1 COPY MEME OUTPUT FROM CLUSTER
+------------------------------------------------------------------------------------------------------
+cd 042215_meme_scaffold_25678_47904
+scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/042215_meme_scaffold_25678_47904/meme_v1/ .
+
+
+3. MANUAL CURATE MOTIFS
+------------------------------------------------------------------------------------------------------
+# Note the each line needs to be seperated by a tab character!!
+emacs 042215_meme_scaffold_25678_47904/scaffold_25678_47904_motif_list_v1.txt
+A1  DSESSPSGEY
+B1  DTGSYPTGEY
+C1  DTYERSYYNGEN
+D1  DTYSTESNNTESY
+E1  NSESYITEEY
+
+
+4. CREATE POSITION WEIGHT MATRICES (AA_Freq)
+------------------------------------------------------------------------------------------------------
+python spider_pipeline_runner.py -af 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/25678_47904_motif_list_v1.txt 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
+
+MEME version 4
+
+ALPHABET= ACDEFGHIKLMNPQRSTVWY
+
+Background letter frequencies
+A 0.0130 C 0.0003 D 0.1012 E 0.1446 F 0.0042 G 0.1256 H 0.0019 I 0.0071 K 0.0111
+L 0.0051 M 0.0008 N 0.0226 P 0.0874 Q 0.0015 R 0.0116 S 0.2074 T 0.1125 V 0.0061
+W 0.0002 Y 0.1359
+
+MOTIF A1 DSESSPSGEY
+letter-probability matrix: alength= 20 w= 10 nsites= 5 E= 0
+0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+
+MOTIF B1 DTGSYPTGEY
+letter-probability matrix: alength= 20 w= 10 nsites= 5 E= 0
+0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+
+MOTIF C1 DTYERSYYNGEN
+letter-probability matrix: alength= 20 w= 12 nsites= 5 E= 0
+0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+
+MOTIF D1 DTYSTESNNTESY
+letter-probability matrix: alength= 20 w= 13 nsites= 5 E= 0
+0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+
+MOTIF E1 NSESYITEEY
+letter-probability matrix: alength= 20 w= 10 nsites= 5 E= 0
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 1.000
+
+5.RUN MAST
+------------------------------------------------------------------------------------------------------
+#Run MAST Locally
+# Optional: use -rna to change the name of the mast run ex. mast_v2 instead of mast_v1
+python spider_pipeline_runner.py -rma 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
+
+#Run MAST On Cluster
+# Optional: use -rna to change the name of the mast run ex. mast_v2 instead of mast_v1
+python spider_pipeline_runner.py -c -rma 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
+
+5.1 COPY MAST OUTPUT FROM CLUSTER
+------------------------------------------------------------------------------------------------------
+scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/042215_meme_scaffold_25678_47904/mast_v1/ .
+
+6. PARSE MAST
+------------------------------------------------------------------------------------------------------
+python spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v1/mast.xml 042215_meme_scaffold_25678_47904/motif_variant_list
+
+7. CREATE POSITION WEIGHT MATRICES (V2)
+------------------------------------------------------------------------------------------------------
+# CREATE MATRICES
+# Required: -f or --folder if using a folder instead of motif file 
+python spider_pipeline_runner.py -af 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_variant_list 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v2.txt -f 042215_meme_scaffold_25678_47904/25678_47904_motif_list_v1.txt
+
+# CREATE MATRICES AND RAW LOGO FILES
+# Required: -f or --folder if using a folder instead of motif file 
+#Optional -lo use this to create the raw logo file 
+python spider_pipeline_runner.py -af 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_variant_list 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v2.txt -f 042215_meme_scaffold_25678_47904/25678_47904_motif_list_v1.txt -lo 042214_meme_scaffold_25678_47904/logo_rawfiles
+
+
+### Reat Steps 5-7 until satisfied ####
+
+8. DOWNLOAD MAST FROM CLUSTER
+------------------------------------------------------------------------------------------------------
+scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/042215_meme_scaffold_25678_47904/mast_v3/ .
+
+##Repeat above sequence of MAST until Satistified ##
+
+9. FINAL PARSE OF MAST
+------------------------------------------------------------------------------------------------------
+python spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v3/mast.xml 042215_meme_scaffold_25678_47904/motif_variant_list -pc 20 042215_meme_scaffold_25678_47904 scaffold_25678_47904.csv 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta final_motif_paint
+
+
+#Repaint sequence into motif abbrev:
+DDDCEEBBBBBAABABABBBABABABBBBABABABBAABBBBABAABABABBBABBBBAABAABABBBABABBAABABABABABABABBAABBABABBABBABAABABAABAABABABABBBBABBABBABAABABABAABABAABAAABABAABBBAABBBBABABABBBBABBABAABABABBABABABABABABABBABABABABAABBBABBABABAABABABABABABABBAABBABABBABBABAABABAABAABABABABBABAABABABAABABABAABABAABBBAABBBBABABABBABABBABAABABABBABABABABABBBABBABABABABAABBBAABBBABBABABBABABABBBBABBABBBAABABABABABABAABABBBABABABABABBBABABBABAABABAABABBBABABBABABABBBABABBABBAABABABBABBABBAAABABABABABAABABBBABABBABBABBAABABAABABABBAABABABBABBABBAABABABAABABABBABABABBAABAABAABBBABABBABABAAA
+
+#Found cassettes (Trucated for readability)
+,0,1,2,3,4,5,6,7,8,9,10,11,12
+AA,"[147, 148]","[466, 467]","[565, 566]",,,,,,,,,,
+AB,"[90, 91]","[237, 238]",,,,,,,,,
+...
+DCEE,"[2, 5]",,,,,,,
+
+#Potential Super cassettes
+,0,1,2,3,4,5,6,7,8,9,10,11
+ABABABAB,"(74, 81)","(112, 119)","(185, 192)","(200, 207)","(221, 228)","(259, 266)","(322, 329)","(337, 344)","(380, 387)","(399, 406)","(467, 474)",
+BABAABAB,"(41, 48)","(100, 107)","(128, 135)","(174, 181)","(247, 254)","(267, 274)","(281, 288)","(311, 318)","(389, 396)","(415, 422)","(497, 504)","(526, 533)"
+BABABBAA,"(30, 37)","(83, 90)","(230, 237)","(538, 545)",,,,,,,,
+BABABBAB,"(92, 99)","(239, 246)","(301, 308)","(357, 364)","(429, 436)","(442, 449)","(453, 460)","(483, 490)","(510, 517)","(554, 561)",,
+ABAABABB,"(475, 482)",,,,,,,,,,,
+BBBABBAB,"(120, 127)","(210, 217)","(369, 376)",,,,,,,,,
+BBBABABA,"(160, 167)",,,,,,,,,,,
+ABBBABAB,"(16, 23)","(64, 71)","(407, 414)",,,,,,,,,
+AABBBAAB,"(152, 159)","(289, 296)","(345, 352)",,,,,,,,,
+BABBAABA,"(518, 525)",,,,,,,,,,,
+BABAABAAABAB,"(140, 151)",,,,,,,,,,,
+BAABAABB,"(546, 553)",,,,,,,,,,,
+BBBBAABA,"(7, 14)","(54, 61)",,,,,,,,,,
+
+#Found Super Cassettes
+,0,1,2,3,4,5,6,7,8,9,10,11
+ABABABAB,"(74, 81)","(112, 119)","(185, 192)","(200, 207)","(221, 228)","(259, 266)","(322, 329)","(337, 344)","(380, 387)","(399, 406)","(467, 474)",
+BABAABAB,"(41, 48)","(100, 107)","(128, 135)","(174, 181)","(247, 254)","(267, 274)","(281, 288)","(311, 318)","(389, 396)","(415, 422)","(497, 504)","(526, 533)"
+BABABBAA,"(30, 37)","(83, 90)","(230, 237)","(538, 545)",,,,,,,,
+BABABBAB,"(92, 99)","(239, 246)","(301, 308)","(357, 364)","(429, 436)","(442, 449)","(453, 460)","(483, 490)","(510, 517)","(554, 561)",,
+ABAABABB,"(475, 482)",,,,,,,,,,,
+BBBABBAB,"(120, 127)","(210, 217)","(369, 376)",,,,,,,,,
+BBBABABA,"(160, 167)",,,,,,,,,,,
+ABBBABAB,"(16, 23)","(64, 71)","(407, 414)",,,,,,,,,
+AABBBAAB,"(152, 159)","(289, 296)","(345, 352)",,,,,,,,,
+BABBAABA,"(518, 525)",,,,,,,,,,,
+BABAABAAABAB,"(140, 151)",,,,,,,,,,,
+BAABAABB,"(546, 553)",,,,,,,,,,,
+BBBBAABA,"(7, 14)","(54, 61)",,,,,,,,,,
+
+#Lastly pipeline generates a legend and a plot of the gene painted by cassettes
+
+10. FINAL TOUCH UPS
+------------------------------------------------------------------------------------------------------
+#########summary for all 
+ls -l /project/voight_spiders/nephila/meme/042215_meme_scaffold_25678_47904/motif_variant_lists/
+
+#make the "variant list" entry for google drive doc
+tr '\n' '|' <motif_XX_list.txt
