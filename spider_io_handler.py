@@ -6,6 +6,8 @@ Created on Fri Aug  7 10:45:08 2015
 """
 import os
 import pandas as pd
+from collections import Counter
+import pdb
 
 def make_directories(folder_path):
     if not os.path.exists(folder_path):
@@ -41,12 +43,33 @@ def run_mast(folder,fasta_filename,pwm_filename,machine="interdictor",cluster_qu
       mast_str = "mast %s %s -oc %s/%s" % (pwm_filename,fasta_filename,folder,mast_run)
       os.system(mast_str)
     
-def write_variants(motifs,foldername):
-    for motif in motifs:
-        with open("%s/motif_%s_list.txt" % (foldername,motif),"w") as f:
-            f.write("\n".join(list(motifs[motif])))
+def write_variants(scaffold_motif_map,foldername):
+    if not(os.path.exists(foldername)):
+        os.mkdir(foldername)
+    for scaffold in scaffold_motif_map:
+        for motif in scaffold_motif_map[scaffold]['Variants']:
+            with open("%s/%s/motif_%s_list.txt" % (foldername,scaffold+"_variants",motif),"w") as f:
+                f.write("\n".join(list(scaffold_motif_map[scaffold]['Variants'][motif])))
     return
-    
+
+def write_motif_freq(motif_map, scaffold_motif_map,filename,flag):
+    with open("%s.csv" % (filename),"w") as f:
+        if flag == 'counts':
+            f.write("Motif Code,Motif Seq,Scaffold,Count,Partial Count,Complete Count\n")
+        else:
+            f.write("Motif Code,Scaffold,Start,Stop\n")
+        for scaffold in scaffold_motif_map:
+            #grab the motif code in the interval list
+            if flag == 'counts':
+                motif_count = Counter([element[2] for element in scaffold_motif_map[scaffold]['Intervals']])
+                matches = scaffold_motif_map[scaffold]["Matches"]
+                for motif in sorted(motif_count.keys()):
+                    f.write("%s,%s,%s,%d,%d,%d\n" % (motif,motif_map[motif],scaffold,motif_count[motif],matches[motif]["Partial"],matches[motif]["Complete"]))
+            else:
+                for element in scaffold_motif_map[scaffold]['Intervals']:
+                    f.write("%s,%s,%d,%d\n" % (element[2],scaffold,element[0],element[1]))
+    return
+
 def create_logo_file(kmer_count_dict,folder):
     for motif in kmer_count_dict:
         with open("%s/motif_%s_logo.txt" % (folder,motif),"w") as f:
@@ -63,11 +86,19 @@ def create_motif_table(motif_file,single_file=True):
             motif_dict = [line.strip() for line in g]
     return motif_dict
 
-def write_intervals(intervals,output_filename):
-    pd.DataFrame.from_dict(intervals,orient="index").to_csv(output_filename)
+def write_cassette_counts(intervals,output_filename):
+    with open(output_filename+".csv","w") as f:
+        f.write("Cassette Seq,Scaffold,Count\n")
+        for scaffold in intervals:
+            for cassette in intervals[scaffold]:
+                f.write("%s,%s,%s\n" % (cassette,scaffold,",".join([str(val) for val in intervals[scaffold][cassette]])))
     return 
-    
-def write_mast_pwm(pwm_dict,motifs,freq_table,alphabet,filename,psudeocount=5):
+
+def write_pairwise(pairwise_table, filename):
+    pairwise_table.to_csv(filename+".csv")
+    return
+
+def write_mast_pwm(pwm_dict,motifs,freq_table,alphabet,filename,nsites=5):
     with open(filename,"w") as f:
         index=1
         f.write("MEME version 4\n\n")
@@ -75,14 +106,24 @@ def write_mast_pwm(pwm_dict,motifs,freq_table,alphabet,filename,psudeocount=5):
         f.write("Background letter frequencies\n")
         freq_table = freq_table.sort("Seq")
         for row in freq_table[["Seq","Freq"]].iterrows():
-            f.write(row[1]["Seq"]+" "+"%.4f "%(row[1]["Freq"]))
+            f.write(row[1]["Seq"]+" "+"%f "%(row[1]["Freq"]))
             if index%9==0:
                 f.write("\n")
             index+=1
         f.write("\n\n")
         for pwm in sorted(pwm_dict.keys()):
             f.write("MOTIF %s %s\n" % (pwm,motifs[pwm]))
-            f.write("letter-probability matrix: alength= %d w= %d nsites= %d E= 0\n"%(len(alphabet),len(motifs[pwm]),psudeocount))
+            f.write("letter-probability matrix: alength= %d w= %d nsites= %d E= 0\n"%(len(alphabet),len(motifs[pwm]),nsites))
             for row in pwm_dict[pwm]:
                 f.write(" ".join(map(lambda x: "%.3f" % (x),row)) + "\n")
             f.write("\n")
+
+def write_cassette_coord(cassettes,motif_coord,filename):
+    with open(filename+".csv","w") as f:
+        f.write("Cassette Seq,Scaffold,Start,Stop\n")
+        for scaffold in cassettes:
+            for cassette_interval in cassettes[scaffold]:
+                for coord in cassettes[scaffold][cassette_interval]:
+                    start = motif_coord[scaffold]["Intervals"][coord[0]][0]
+                    stop = motif_coord[scaffold]["Intervals"][coord[1]][1]
+                    f.write("%s,%s,%d,%d\n" % (cassette_interval,scaffold,start,stop))

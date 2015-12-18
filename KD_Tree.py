@@ -29,14 +29,15 @@ class KD_Tree:
         return self.root.fits(query) if self.root else True
         
     def get_label(self,index):
-        return self.root.get_label(index)
+        return self.root.get_label(index) if self.root else None
         
     def inorder(self):
         self.root.inorder([],True)
         
     def to_arr(self):
         arr = []
-        self.root.inorder(arr)
+        if self.root:
+            self.root.inorder(arr)
         return arr
         
     def __str__(self):
