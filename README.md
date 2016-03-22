@@ -1,2 +1,2 @@
 # Spider-Pipeline
-Insert Cool Description Here
+This is the meme-mast pipeline runner for identifying conserved motifs and cassettes.

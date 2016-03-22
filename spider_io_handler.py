@@ -88,10 +88,11 @@ def create_motif_table(motif_file,single_file=True):
 
 def write_cassette_counts(intervals,output_filename):
     with open(output_filename+".csv","w") as f:
-        f.write("Cassette Seq,Scaffold,Count\n")
+        f.write("Cassette Group,Cassette Seq,Scaffold,Count\n")
         for scaffold in intervals:
             for cassette in intervals[scaffold]:
-                f.write("%s,%s,%s\n" % (cassette,scaffold,",".join([str(val) for val in intervals[scaffold][cassette]])))
+                for cassette_type in intervals[scaffold][cassette]:
+                    f.write("%s,%s,%s,%d\n" % (cassette,cassette_type[0],scaffold,len(cassette_type[1])))
     return 
 
 def write_pairwise(pairwise_table, filename):
@@ -120,10 +121,14 @@ def write_mast_pwm(pwm_dict,motifs,freq_table,alphabet,filename,nsites=5):
 
 def write_cassette_coord(cassettes,motif_coord,filename):
     with open(filename+".csv","w") as f:
-        f.write("Cassette Seq,Scaffold,Start,Stop\n")
+        f.write("Cassette Group,Cassette Seq,Scaffold,Start,Stop\n")
         for scaffold in cassettes:
             for cassette_interval in cassettes[scaffold]:
                 for coord in cassettes[scaffold][cassette_interval]:
-                    start = motif_coord[scaffold]["Intervals"][coord[0]][0]
-                    stop = motif_coord[scaffold]["Intervals"][coord[1]][1]
-                    f.write("%s,%s,%d,%d\n" % (cassette_interval,scaffold,start,stop))
+                    for interval in coord[1]:
+                        print scaffold
+                        print len(motif_coord[scaffold]["Intervals"])
+                        print interval
+                        start = motif_coord[scaffold]["Intervals"][interval[0]][0]
+                        stop = motif_coord[scaffold]["Intervals"][interval[1]][1]
+                        f.write("%s,%s,%s,%d,%d\n" % (cassette_interval,coord[0],scaffold,start,stop))

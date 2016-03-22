@@ -86,23 +86,17 @@ def create_AA_pwm(motif,alphabet):
     return AA_matrix
     
 def grab_motifs(filename,threshold):
-    #delete me
-    new_mapping_table = pd.read_csv("new_group_map.csv", sep="\t")
     root = ET.parse(filename).getroot()
     motif_map = {}
     scaffold_motif_map = defaultdict(dict)
     for child in root:
         if "motifs" in child.tag:
-            prev_motif = ""
+            motif_idx_map = {}
+            db_index = 0
             for motif in child.iter("motif"):
-                #delete me
-                if motif.attrib["name"] in list(new_mapping_table["OLD_Type"]):
-                    motif_map[motif.attrib["id"]] = motif.attrib
-                    #delete me
-                    motif_map[motif.attrib["id"]]["name"] = new_mapping_table[new_mapping_table["OLD_Type"] == motif.attrib["name"]]["NEW_Type"].values[0]
-                #delete me
-                else:
-                    print motif.attrib["name"]
+                motif_map[motif.attrib["id"]] = motif.attrib
+                motif_idx_map[str(db_index)] = motif.attrib["id"]
+                db_index = db_index + 1
             #initialize the motif_1
             """
             pairwise_matrix = defaultdict(lambda:[float(0.00)]*len(motif_map.keys()))
@@ -139,31 +133,29 @@ def grab_motifs(filename,threshold):
                         if "data" in hit_information.tag:
                             data = re.sub(r'\n','',hit_information.text)
                         if "hit" in hit_information.tag:
-                            motif_id = hit_information.attrib["motif"]
-                            #delete me
-                            if motif_id not in motif_map:
-                                continue
+                            motif_id = hit_information.attrib["motif"] if "motif" in hit_information.attrib else hit_information.attrib["idx"]
                             pos = int(hit_information.attrib["pos"])
+                            motif_name = motif_map[motif_id]["name"] if not motif_id.isdigit() else motif_idx_map[motif_id]
                             #calibrate the indicies to match python's indicies
                             calibrate_pos = pos-start
-                            motif_length = int(motif_map[motif_id]["width"])
+                            motif_length = int(motif_map[motif_id]["width"]) if not motif_id.isdigit() else int(motif_map[motif_idx_map[motif_id]]["length"])
                             #convert positions into python terms
-                            if motif_map[motif_id]["name"] not in motif_hit_categories:
-                                motif_hit_categories[motif_map[motif_id]["name"]]={"Partial":0, "Complete":0}
+                            if motif_name not in motif_hit_categories:
+                                motif_hit_categories[motif_name]={"Partial":0, "Complete":0}
                             if " " in hit_information.attrib["match"]:
-                                motif_hit_categories[motif_map[motif_id]["name"]]["Partial"] += 1
+                                motif_hit_categories[motif_name]["Partial"] += 1
                             else:
-                                motif_hit_categories[motif_map[motif_id]["name"]]["Complete"] += 1
-                            motif_seq_intervals.append((pos,pos+motif_length-1,motif_map[motif_id]["name"]))
-                            motif_variant_map[motif_map[motif_id]["name"]].add(data[calibrate_pos:calibrate_pos+motif_length])
+                                motif_hit_categories[motif_name]["Complete"] += 1
+                            motif_seq_intervals.append((pos,pos+motif_length-1,motif_name))
+                            motif_variant_map[motif_name].add(data[calibrate_pos:calibrate_pos+motif_length])
                 scaffold_motif_map[scaffold] = {"Intervals":motif_seq_intervals,"Variants":motif_variant_map,"Length":sequence_length,"Matches":motif_hit_categories}
-    motif_map = {motif_map[key]["name"]:motif_map[key]["best_f"] for key in motif_map}
+    motif_map = {motif_map[key]["name"]:motif_map[key]["best_f"] for key in motif_map} if not motif_id.isdigit() else {motif_idx_map[val]:motif_map[motif_idx_map[val]]['alt'] for val in motif_idx_map}
     return (motif_map,scaffold_motif_map)#,pairwise_table)
 
 def find_conserved_sequences(sequence,k,limit,inc_dec_value,condition_func):
     region_tree = KD.KD_Tree()
-    chunker = defaultdict(list)
-    cassette_bag = defaultdict(list)
+    chunker = defaultdict(dict)
+    cassette_bag = defaultdict(dict)
     percentage_covered = 0
     seen = []
     conserve_k = k
@@ -172,44 +164,63 @@ def find_conserved_sequences(sequence,k,limit,inc_dec_value,condition_func):
             index = 0
             while(index+k) < len(sequence):
                 #-1 is for the overlap
+                possible_group = ":".join(map(lambda x: x[0:x.index("_")],sequence[index:index+k]))
                 possible_cassette = ":".join(sequence[index:index+k])
-                if region_tree.fits((index,index+k-1)) and possible_cassette not in seen:
-                    if possible_cassette not in chunker or chunker[possible_cassette][-1][1] < index:
-                        chunker[possible_cassette].append((index,index+k-1))
+                if region_tree.fits((index,index+k-1)) and possible_group not in seen:
+                    if possible_group not in chunker:
+                        chunker[possible_group]=defaultdict(list)
+                        chunker[possible_group][possible_cassette].append((index,index+k-1))
+                    elif possible_cassette not in chunker[possible_group]:
+                        chunker[possible_group][possible_cassette].append((index,index+k-1))
+                    elif chunker[possible_group][possible_cassette][-1][1] < index:
+                        chunker[possible_group][possible_cassette].append((index,index+k-1))
                 index = index + 1
             k+=inc_dec_value
-        cassette_table = sorted(chunker.items(),key=lambda x:len(x[1]))
+        cassette_table = sorted(chunker.items(),key=lambda x: sum(map(lambda interval: len(interval),x[1].values())))
         #print cassette_table
         #print sequence
         #pdb.set_trace()
         #terminate if no other cassettes are found or if all the cassettes left occur only once
-        if len(cassette_table) == 0 or all(map(lambda x: len(x[1]) == 1, cassette_table)):
+        #if len(cassette_table) == 0 or all(map(lambda x: len(x[1]) == 1, cassette_table)):
+        if len(cassette_table) == 0 or all(map(lambda interval: len(interval[1].values()) == 1,cassette_table)):
             return (cassette_bag,region_tree)
         cassette_to_paint = cassette_table.pop()
-        if len(cassette_to_paint[1]) > 1:
-            cassette_bag[cassette_to_paint[0]] = cassette_to_paint[1]
-            for index in cassette_to_paint[1]:
-                region_tree.insert(index,cassette_to_paint[0])
-            seen.append(cassette_to_paint[0])
+        cassette_bag[cassette_to_paint[0]] = cassette_to_paint[1]
+        for cassette_type in cassette_to_paint[1]:
+            for index in cassette_to_paint[1][cassette_type]:
+                if region_tree.fits(index):
+                    region_tree.insert(index,cassette_type)
+        seen.append(cassette_to_paint[0])
         k = conserve_k
         #reset window search
-        chunker=defaultdict(list)
+        chunker=defaultdict(dict)
 
 def find_super_cassettes(sm_conv_seq_tree, conv_seq):
-    super_cassettes = defaultdict(list)
+    super_cassettes = defaultdict(dict)
     super_cassette_region_tree = KD.KD_Tree()
-    intervals = [val for x in sm_conv_seq_tree.to_arr() for val in range(x[0][0],x[0][1]+1,1)]
-    for possible_sc in conv_seq:
-        for sp_interval in conv_seq[possible_sc]:
-            if all(pd.Series(range(sp_interval[0],sp_interval[1]+1,1)).isin(pd.Series(intervals))):
-                super_cassettes[possible_sc].append(sp_interval)
-                super_cassette_region_tree.insert(sp_interval,possible_sc)
+    forbidden_interval = [val[0][1] if val[0][1] - val[0][0] <= 1 else val2 for val in sm_conv_seq_tree.to_arr() for val2 in range(val[0][0]+1,val[0][1]+1)]
+    for possible_group in conv_seq:
+        for possible_sc in conv_seq[possible_group]:
+            allowed = True
+            if len(conv_seq[possible_group][possible_sc]) > 1 or len(conv_seq[possible_group]) > 1:
+                for sp_interval in conv_seq[possible_group][possible_sc]:
+                    if sp_interval[0] in forbidden_interval or sp_interval[1]+1 in forbidden_interval:
+                        allowed = False
+                if allowed:
+                    cassettes = [sm_conv_seq_tree.get_label(val) for val in range(sp_interval[0],sp_interval[1]+1,1) if val not in forbidden_interval]
+                    if None not in cassettes:
+                        possible_group_name = "::".join(map(lambda x: ":".join(re.findall(r'([\w]+)_',x)),cassettes))
+                        if possible_group_name not in super_cassettes:
+                            super_cassettes[possible_group_name] = defaultdict(list)
+                        if super_cassette_region_tree.fits(sp_interval):
+                            super_cassettes[possible_group_name]["::".join(cassettes)].append(sp_interval)
+                            super_cassette_region_tree.insert(sp_interval,"::".join(cassettes))
     return (super_cassettes,super_cassette_region_tree)
 
 def fill_gaps(sequence,region_tree):
     intervals = region_tree.to_arr()
     gap_fix_count = defaultdict(list)
-    fixed_cassette_bag = defaultdict(list)
+    fixed_cassette_bag = defaultdict(dict)
     fixed_region_tree = KD.KD_Tree()
     filled = False
     while(not(filled)):
@@ -218,8 +229,8 @@ def fill_gaps(sequence,region_tree):
             #change to >1 if necessary
             if (intervals[index+1][0][0]-intervals[index][0][1]) == 2:
                 gap = sequence[intervals[index][0][1]+1:intervals[index+1][0][0]]
-                possible_forward_str = intervals[index][1] + gap[0]
-                possible_backward_str = gap[0] + intervals[index+1][1]
+                possible_forward_str = intervals[index][1] + ":" + gap[0]
+                possible_backward_str = gap[0] + ":" +  intervals[index+1][1]
                 gap_fix_count[possible_forward_str].append([index,intervals[index][0][0],intervals[index][0][1]+1])
                 gap_fix_count[possible_backward_str].append([index+1,intervals[index+1][0][0]-1,intervals[index+1][0][1]])
         #only consider gaps that occur more than once
@@ -236,6 +247,9 @@ def fill_gaps(sequence,region_tree):
             gap_fix_count = defaultdict(list)
     
     for item in intervals:
-        fixed_cassette_bag[item[1]].append(tuple(item[0]))
+        fixed_motif_group = ":".join(map(lambda x: x[0:x.index("_")],item[1].split(":")))
+        if fixed_motif_group not in fixed_cassette_bag:
+            fixed_cassette_bag[fixed_motif_group] = defaultdict(list)
+        fixed_cassette_bag[fixed_motif_group][item[1]].append(tuple(item[0]))
         fixed_region_tree.insert(tuple(item[0]),item[1])
     return (fixed_cassette_bag,fixed_region_tree)

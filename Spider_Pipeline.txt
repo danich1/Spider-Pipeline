@@ -28,7 +28,7 @@ scp 042215_silk_scaffold_25678_47904_AA.fasta pbabb@transfer.pmacs.upenn.edu:/pr
 
 2. RUNNING MEME
 ------------------------------------------------------------------------------------------------------
-# RUN MEME With MultiThreading
+# RUN MEME With MultiThreading on Cluster
 # WD: /project/voight_spiders/nephila/meme
 # Required: -c to specify that you are submitting jobs onto the cluster
 # Optional: use -t # to specify the amount of threads you want to use
@@ -36,7 +36,7 @@ scp 042215_silk_scaffold_25678_47904_AA.fasta pbabb@transfer.pmacs.upenn.edu:/pr
 # Optional: use -rna to change the name of the meme run ex. meme_v2 instead of meme_v1
 python spider_pipeline_runner.py -c -rme 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta
 
-#RUN MEME Without MultiThreading
+#RUN MEME Without MultiThreading on Cluster
 # WD: /project/voight_spiders/nephila/meme
 # Required: -c to specify that you are submitting jobs onto the cluster
 # Required: if not using multi threading you must specify queue
@@ -57,7 +57,7 @@ scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/04221
 
 3. MANUAL CURATE MOTIFS
 ------------------------------------------------------------------------------------------------------
-# Note the each line needs to be seperated by a tab character!!
+# Note the each line needs to be separated by a tab character!!
 emacs 042215_meme_scaffold_25678_47904/scaffold_25678_47904_motif_list_v1.txt
 A1  DSESSPSGEY
 B1  DTGSYPTGEY
@@ -68,6 +68,7 @@ E1  NSESYITEEY
 
 4. CREATE POSITION WEIGHT MATRICES (AA_Freq)
 ------------------------------------------------------------------------------------------------------
+# -af requires  sequence file motif  listing created above   name of position weight matricies file
 python spider_pipeline_runner.py -af 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/25678_47904_motif_list_v1.txt 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
 
 MEME version 4
@@ -152,10 +153,12 @@ letter-probability matrix: alength= 20 w= 10 nsites= 5 E= 0
 5.RUN MAST
 ------------------------------------------------------------------------------------------------------
 #Run MAST Locally
+# -rma requires name of folder  sequence file   position weight matrices file
 # Optional: use -rna to change the name of the mast run ex. mast_v2 instead of mast_v1
 python spider_pipeline_runner.py -rma 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
 
 #Run MAST On Cluster
+# -rma requires name of folder  sequence file   position weight matrices file
 # Optional: use -rna to change the name of the mast run ex. mast_v2 instead of mast_v1
 python spider_pipeline_runner.py -c -rma 042215_meme_scaffold_25678_47904 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta 042215_meme_scaffold_25678_47904/motif_pwm_entries/scaffold_25678_47904_pwm_v1.txt
 
@@ -165,7 +168,10 @@ scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/04221
 
 6. PARSE MAST
 ------------------------------------------------------------------------------------------------------
-python spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v1/mast.xml 042215_meme_scaffold_25678_47904/motif_variant_list
+# -p    name of mast file   score threshold
+python spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v1/mast.xml -1
+
+###Add variant files and more options
 
 7. CREATE POSITION WEIGHT MATRICES (V2)
 ------------------------------------------------------------------------------------------------------
@@ -189,7 +195,7 @@ scp -r pbabb@transfer.pmacs.upenn.edu:/project/voight_spiders/nephila/meme/04221
 
 9. FINAL PARSE OF MAST
 ------------------------------------------------------------------------------------------------------
-python spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v3/mast.xml 042215_meme_scaffold_25678_47904/motif_variant_list -pc 20 042215_meme_scaffold_25678_47904 scaffold_25678_47904.csv 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta final_motif_paint
+python Spider_tools/spider_pipeline_runner.py -p 042215_meme_scaffold_25678_47904/mast_v3/mast.xml 042215_meme_scaffold_25678_47904/motif_variant_list -pc 20 042215_meme_scaffold_25678_47904 scaffold_25678_47904.csv 042215_meme_scaffold_25678_47904/042215_silk_scaffold_25678_47904_AA.fasta final_motif_paint
 
 
 #Repaint sequence into motif abbrev:

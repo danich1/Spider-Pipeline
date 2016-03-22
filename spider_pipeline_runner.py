@@ -83,7 +83,8 @@ def main():
         if args.variant_folder:
             SPIO.write_variants(scaffold_motif_map,args.variant_folder[0])
         if args.pairwise:
-            SPIO.write_pairwise(pairwise_table,args.pairwise[0])
+            print "Currently not implemented"
+            #SPIO.write_pairwise(pairwise_table,args.pairwise[0])
         if args.paint_cassettes:
             super_cassette_count = defaultdict(dict)
             cassette_count = defaultdict(dict)
@@ -102,24 +103,29 @@ def main():
                     motif_color_map[motif] = scalarMap.to_rgba(key_index,alpha=float(motif_index)/scale_factor + epsilon)
             #incorpoate more colors here but desperate to complete
             for scaffold in scaffold_motif_map:
+            #for scaffold in ["scaffold_25678_47904_CDS_v4"]:
                 print "Working on Scaffold: %s" % (scaffold) 
                 #remove the digits
-                scaffold_motif_seq = map(lambda x: re.sub("[\d_]+","",x[2]),scaffold_motif_map[scaffold]['Intervals'])
+                #scaffold_motif_seq = map(lambda x: re.sub("[\d_]+","",x[2]),scaffold_motif_map[scaffold]['Intervals'])
+                scaffold_motif_seq = [x[2] for x in scaffold_motif_map[scaffold]['Intervals']]
                 k_mer_start_len = 2
-                k_mer_end_len = 7
+                k_mer_end_len = 4
                 (sm_conv_seqs,sm_cassette_region_tree) = SPU.find_conserved_sequences(scaffold_motif_seq,k_mer_start_len,k_mer_end_len,1,lambda x,limit: x <= limit)
                 (sm_conv_seqs,sm_cassette_region_tree) = SPU.fill_gaps(scaffold_motif_seq,sm_cassette_region_tree)
                 (conv_seqs,super_cassette_region_tree) = SPU.find_conserved_sequences(scaffold_motif_seq,int(args.paint_cassettes[0]),k_mer_end_len,-1,lambda x,limit: x > limit)
                 (conv_seqs,super_cassette_region_tree) = SPU.find_super_cassettes(sm_cassette_region_tree,conv_seqs)
-                #cassette_count[scaffold] = {cassette:len(sm_conv_seqs[cassette]) for cassette in sm_conv_seqs}
-                cassette_count[scaffold] = {cassette:sm_conv_seqs[cassette] for cassette in sm_conv_seqs}
-                print "Cassettes (%% covered): %f" % (float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),sm_cassette_region_tree.to_arr()))/float(len(scaffold_motif_seq)))) if len(scaffold_motif_seq) > 0 else 0
-                print "Super Cassettes (%% covered): %f" % (float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),super_cassette_region_tree.to_arr()))/float(len(scaffold_motif_seq)))) if len(scaffold_motif_seq) > 0 else 0
-                super_cassette_map = {cassette:conv_seqs[cassette] for cassette in conv_seqs}
-                if len(conv_seqs) > 0 and len(super_cassette_map) > 0:
+                cassette_count[scaffold] = {cassette:sm_conv_seqs[cassette].items() for cassette in sm_conv_seqs}
+                #fun stats
+                total_aa_covered = float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),sm_cassette_region_tree.to_arr())))
+                total_seq_len = float(len(scaffold_motif_seq))
+                super_total_aa_covered = float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),super_cassette_region_tree.to_arr())))
+                print "Cassettes (%% AA covered): %f (%d/%d)" % (total_aa_covered/total_seq_len,total_aa_covered,total_seq_len) if len(scaffold_motif_seq) > 0 else (0,0,total_seq_len)
+                print "Super Cassettes (%% AA covered): %f (%d/%d)" % (super_total_aa_covered/total_seq_len,super_total_aa_covered,total_seq_len) if len(scaffold_motif_seq) > 0 else (0,0,total_seq_len)
+                #super_cassette_map = {cassette:conv_seqs[cassette].items() for cassette in conv_seqs}
+                if len(conv_seqs) > 0:
                     #super_cassette_count[scaffold] = {sup_cassette:len(conv_seqs[sup_cassette]) for sup_cassette in conv_seqs}
-                    super_cassette_count[scaffold] = {sup_cassette:conv_seqs[sup_cassette] for sup_cassette in conv_seqs}
-                    super_cassette_colormap = {label:cassette for cassette,label in enumerate(sorted(super_cassette_map.keys(),key=len))}
+                    super_cassette_count[scaffold] = {sup_cassette:conv_seqs[sup_cassette].items() for sup_cassette in conv_seqs}
+                    #super_cassette_colormap = {label:cassette for cassette,label in enumerate(sorted(super_cassette_map.keys(),key=len))}
                     #SPU.paint_seq(args.paint_cassettes[1],scaffold_motif_map[scaffold]["Length"],scaffold,scaffold_motif_map[scaffold]['Intervals'],motif_color_map,sm_cassette_region_tree,super_cassette_map,super_cassette_colormap)
                 else:
                     if len(sm_conv_seqs) < 1:
@@ -127,8 +133,8 @@ def main():
                     print "WARNING NO SUPER CASSETTES FOUND!!!!\n"
                     #SPU.paint_seq(args.paint_cassettes[1],scaffold_motif_map[scaffold]["Length"],scaffold,scaffold_motif_map[scaffold]['Intervals'],motif_color_map,sm_cassette_region_tree,{},{})
             #Add cassette to AA conversion
-            SPIO.write_cassette_counts(cassette_count,"%s/cassettes" % (args.paint_cassettes[1]))
-            SPIO.write_cassette_counts(super_cassette_count,"%s/super_cassettes" % (args.paint_cassettes[1]))
+            SPIO.write_cassette_counts(cassette_count,"%s/cassettes_count" % (args.paint_cassettes[1]))
+            SPIO.write_cassette_counts(super_cassette_count,"%s/super_cassettes_count" % (args.paint_cassettes[1]))
             SPIO.write_cassette_coord(cassette_count,scaffold_motif_map,"%s/cassette_coord" %(args.paint_cassettes[1]))
             SPIO.write_cassette_coord(super_cassette_count,scaffold_motif_map,"%s/super_cassette_coord" %(args.paint_cassettes[1]))
 
