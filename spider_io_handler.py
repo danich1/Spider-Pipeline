@@ -19,7 +19,6 @@ def make_directories(folder_path):
         os.makedirs("motif_pwm_entries")
     if not os.path.exists("logo_rawfiles"):
         os.makedirs("logo_rawfiles")
-    #not needed but helps with the logic of the function
     return
 
 def run_meme(folder,fasta_filename,thread_num=40,cluster_queue="voight_mpi",machine="interdictor",meme_run="meme_v1",multithread=True,cluster=False):
@@ -34,7 +33,6 @@ def run_meme(folder,fasta_filename,thread_num=40,cluster_queue="voight_mpi",mach
         os.system(meme_str)
     return
 
-#not made for cluster yet ask paul 
 def run_mast(folder,fasta_filename,pwm_filename,machine="interdictor",cluster_queue="voight_normal",mast_run="mast_v1",cluster=False):
    if cluster:
        job_submission_str = """bsub -q %s -m %s -o %s/%s.log 'mast %s %s -oc %s/%s'""" % (cluster_queue,machine,folder,folder,pwm_filename,fasta_filename,folder,mast_run)
@@ -59,7 +57,6 @@ def write_motif_freq(motif_map, scaffold_motif_map,filename,flag):
         else:
             f.write("Motif Code,Scaffold,Start,Stop\n")
         for scaffold in scaffold_motif_map:
-            #grab the motif code in the interval list
             if flag == 'counts':
                 motif_count = Counter([element[2] for element in scaffold_motif_map[scaffold]['Intervals']])
                 matches = scaffold_motif_map[scaffold]["Matches"]

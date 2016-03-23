@@ -18,8 +18,7 @@ class KD_Tree:
         if abs(rightsize-leftsize) > 1:
             self.resize()
 
-    def resize(self):  
-        #grab all the nodes into an array then reshape it        
+    def resize(self):
         nodes = self.to_arr()
         self.root = Node(nodes[len(nodes)/2][0],nodes[len(nodes)/2][1])
         nodes = nodes[:len(nodes)/2] + nodes[len(nodes)/2+1:]

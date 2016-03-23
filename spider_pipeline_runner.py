@@ -10,24 +10,20 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
 def main():
-    #if you want to make it DNA ask me
     alphabet = ['A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y']
     machine="interdictor"
     queue="voight_mpi"
     threads=40
     parser = argparse.ArgumentParser(prog="Spider Pipeline",description="This is the spider genome pipeline. The commands are described below.")
     parser.add_argument("-mk","--create_dirs",help="Use this to create all the necessary directories.",nargs=1,metavar="Directory_Name")
-    #if run meme folder,fasta_filename,thread_num,cluster_queue="voight_mpi",machine="interdictor",meme_run="meme_v1",multithread=True
     parser.add_argument("-rme","--run_meme",help="Use this to submit meme jobs onto the cluster.",nargs=2,metavar=("Folder_Name", "AA_Seq_File"))
     parser.add_argument("-nt","--no_meme_multithread", help="Use this to run meme without it being multithreaded (Optional)", action="store_true")
     parser.add_argument("-q","--queue", help="Use this to designate which queue you want to submit the job to(Optional)",nargs=1,metavar="Queue_Name")
     parser.add_argument("-m","--machine",help="Use this to designate which machine to run (Optional)",nargs=1,metavar="Machine_Name")
     parser.add_argument("-t","--threads",help="Use this to specify how many threads you want to run (Optional)",nargs=1,metavar="Thread_Number")
     parser.add_argument("-rna","--run_name",help="Use this to specify what you want to call the output(Optional)", nargs=1,metavar="Mast/Meme_Run_Name")
-    #if run mast folder,fasta_filename,pwm_filename,mast_run="mast_v1",cluster=False
     parser.add_argument("-rma","--run_mast",help="Use this to run mast.",nargs=3,metavar=("Folder_Name", "AA_Seq_File", "PWM_File"))
     parser.add_argument("-c","--cluster",help="Use this to submit jobs on the cluster.",action="store_true")
-    #if this will parse the mast output
     parser.add_argument("-p","--parse_mast",help="Use this to parse MAST output.",nargs=2,metavar=("Mast_File_Path","Mast_pairwise_threshold"))
     parser.add_argument("-mc","--motif_count",help="Use this to print out the motif count.",nargs=1,metavar="Motif_Freq_Count_File_Path")
     parser.add_argument("-mco","--motif_coord",help="Use this to print out the motif coordinates.",nargs=1,metavar="Motif_Freq_Coord_File_Path")
@@ -71,8 +67,7 @@ def main():
             SPIO.run_mast(args.run_mast[0],args.run_mast[1],args.run_mast[2],machine=machine,cluster_queue=queue,mast_run=run_name,cluster=True)
         else:
             SPIO.run_mast(args.run_mast[0],args.run_mast[1],args.run_mast[2],mast_run=run_name)
-    
-    #change this to incorporate multiple scaffolds also add a motif paint for each scaffold
+
     if args.parse_mast:
         motif_map,scaffold_motif_map = SPU.grab_motifs(args.parse_mast[0],int(args.parse_mast[1]))
 
@@ -101,12 +96,8 @@ def main():
                 scale_factor = len(motif_group_map[key]) + 1
                 for motif_index, motif in enumerate(sorted(motif_group_map[key])):
                     motif_color_map[motif] = scalarMap.to_rgba(key_index,alpha=float(motif_index)/scale_factor + epsilon)
-            #incorpoate more colors here but desperate to complete
             for scaffold in scaffold_motif_map:
-            #for scaffold in ["scaffold_25678_47904_CDS_v4"]:
-                print "Working on Scaffold: %s" % (scaffold) 
-                #remove the digits
-                #scaffold_motif_seq = map(lambda x: re.sub("[\d_]+","",x[2]),scaffold_motif_map[scaffold]['Intervals'])
+                print "Working on Scaffold: %s" % (scaffold)
                 scaffold_motif_seq = [x[2] for x in scaffold_motif_map[scaffold]['Intervals']]
                 k_mer_start_len = 2
                 k_mer_end_len = 4
@@ -115,15 +106,7 @@ def main():
                 (conv_seqs,super_cassette_region_tree) = SPU.find_conserved_sequences(scaffold_motif_seq,int(args.paint_cassettes[0]),k_mer_end_len,-1,lambda x,limit: x > limit)
                 (conv_seqs,super_cassette_region_tree) = SPU.find_super_cassettes(sm_cassette_region_tree,conv_seqs)
                 cassette_count[scaffold] = {cassette:sm_conv_seqs[cassette].items() for cassette in sm_conv_seqs}
-                #fun stats
-                total_aa_covered = float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),sm_cassette_region_tree.to_arr())))
-                total_seq_len = float(len(scaffold_motif_seq))
-                super_total_aa_covered = float(sum(map(lambda x: (x[0][1]-x[0][0] + 1),super_cassette_region_tree.to_arr())))
-                print "Cassettes (%% AA covered): %f (%d/%d)" % (total_aa_covered/total_seq_len,total_aa_covered,total_seq_len) if len(scaffold_motif_seq) > 0 else (0,0,total_seq_len)
-                print "Super Cassettes (%% AA covered): %f (%d/%d)" % (super_total_aa_covered/total_seq_len,super_total_aa_covered,total_seq_len) if len(scaffold_motif_seq) > 0 else (0,0,total_seq_len)
-                #super_cassette_map = {cassette:conv_seqs[cassette].items() for cassette in conv_seqs}
                 if len(conv_seqs) > 0:
-                    #super_cassette_count[scaffold] = {sup_cassette:len(conv_seqs[sup_cassette]) for sup_cassette in conv_seqs}
                     super_cassette_count[scaffold] = {sup_cassette:conv_seqs[sup_cassette].items() for sup_cassette in conv_seqs}
                     #super_cassette_colormap = {label:cassette for cassette,label in enumerate(sorted(super_cassette_map.keys(),key=len))}
                     #SPU.paint_seq(args.paint_cassettes[1],scaffold_motif_map[scaffold]["Length"],scaffold,scaffold_motif_map[scaffold]['Intervals'],motif_color_map,sm_cassette_region_tree,super_cassette_map,super_cassette_colormap)
@@ -131,14 +114,11 @@ def main():
                     if len(sm_conv_seqs) < 1:
                         print "WARNING NO CASSETTES FOUND!!"
                     print "WARNING NO SUPER CASSETTES FOUND!!!!\n"
-                    #SPU.paint_seq(args.paint_cassettes[1],scaffold_motif_map[scaffold]["Length"],scaffold,scaffold_motif_map[scaffold]['Intervals'],motif_color_map,sm_cassette_region_tree,{},{})
-            #Add cassette to AA conversion
             SPIO.write_cassette_counts(cassette_count,"%s/cassettes_count" % (args.paint_cassettes[1]))
             SPIO.write_cassette_counts(super_cassette_count,"%s/super_cassettes_count" % (args.paint_cassettes[1]))
             SPIO.write_cassette_coord(cassette_count,scaffold_motif_map,"%s/cassette_coord" %(args.paint_cassettes[1]))
             SPIO.write_cassette_coord(super_cassette_count,scaffold_motif_map,"%s/super_cassette_coord" %(args.paint_cassettes[1]))
 
-    #add one more arugment to get the main motif sequence
     if args.AA_freq:
         if args.folder:
             motif_dict = {}
@@ -161,6 +141,5 @@ def main():
             AA_pwms = {seq:SPU.create_AA_pwm([motifs[seq]],alphabet) for seq in motifs}
             SPIO.write_mast_pwm(AA_pwms,motifs,AA_freq_count,alphabet,args.AA_freq[2]) 
 
-#makes it so other files won't execute unnecessary commands
 if __name__=="__main__":
     main()

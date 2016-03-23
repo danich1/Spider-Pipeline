@@ -97,29 +97,6 @@ def grab_motifs(filename,threshold):
                 motif_map[motif.attrib["id"]] = motif.attrib
                 motif_idx_map[str(db_index)] = motif.attrib["id"]
                 db_index = db_index + 1
-            #initialize the motif_1
-            """
-            pairwise_matrix = defaultdict(lambda:[float(0.00)]*len(motif_map.keys()))
-            pairwise_matrix["motif_1"]
-            #may have to change append if number of motifs increases to infinity
-            for motif in child.iter("correlation"):
-                if prev_motif != motif.attrib["motif_b"]:
-                    index = 0
-                if float(motif.attrib["value"]) > threshold:
-                    pairwise_matrix[motif.attrib["motif_b"]][index] = float(motif.attrib["value"])
-                else:
-                    pairwise_matrix[motif.attrib["motif_b"]][index] = float(0)
-                index = index + 1
-                prev_motif = motif.attrib["motif_b"]
-            pairwise_table = pd.DataFrame.from_dict(pairwise_matrix)
-            pairwise_columns = sorted(list(pairwise_table.columns), key=lambda x: int(x[x.index("_")+1:]))
-            pairwise_table = pairwise_table[pairwise_columns]
-            pairwise_table = pd.DataFrame(np.array(pairwise_table) + np.array(pairwise_table.transpose()))
-            pairwise_table.columns = pairwise_columns
-            pairwise_table.index = pairwise_columns
-            pairwise_table["Sequence"] = map(lambda x: motif_map[x]["best_f"],pairwise_columns)
-            pairwise_table = pairwise_table[["Sequence"] + pairwise_columns]
-            """
         if "sequences" in child.tag:
             for seq in child.iter("sequence"):
                 motif_variant_map = defaultdict(set)
@@ -156,14 +133,12 @@ def find_conserved_sequences(sequence,k,limit,inc_dec_value,condition_func):
     region_tree = KD.KD_Tree()
     chunker = defaultdict(dict)
     cassette_bag = defaultdict(dict)
-    percentage_covered = 0
     seen = []
     conserve_k = k
     while(True):
         while(condition_func(k,limit)):
             index = 0
             while(index+k) < len(sequence):
-                #-1 is for the overlap
                 possible_group = ":".join(map(lambda x: x[0:x.index("_")],sequence[index:index+k]))
                 possible_cassette = ":".join(sequence[index:index+k])
                 if region_tree.fits((index,index+k-1)) and possible_group not in seen:
@@ -177,11 +152,6 @@ def find_conserved_sequences(sequence,k,limit,inc_dec_value,condition_func):
                 index = index + 1
             k+=inc_dec_value
         cassette_table = sorted(chunker.items(),key=lambda x: sum(map(lambda interval: len(interval),x[1].values())))
-        #print cassette_table
-        #print sequence
-        #pdb.set_trace()
-        #terminate if no other cassettes are found or if all the cassettes left occur only once
-        #if len(cassette_table) == 0 or all(map(lambda x: len(x[1]) == 1, cassette_table)):
         if len(cassette_table) == 0 or all(map(lambda interval: len(interval[1].values()) == 1,cassette_table)):
             return (cassette_bag,region_tree)
         cassette_to_paint = cassette_table.pop()
