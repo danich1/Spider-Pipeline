@@ -7,6 +7,8 @@ echo $LD_LIBRARY_PATH
 
 MEME_scaffold_25678_47904 
 
+%http://meme-suite.org/doc/install.html?man_type=web#quick
+
 Dependencies:
 Python 2.7, pandas, numpy, matplotlib      
 

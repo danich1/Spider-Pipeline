@@ -1,0 +1,9 @@
+name: spider-motif
+channels:
+- conda-forge
+dependencies:
+- matplotlib==2.1.2
+- numpy==1.16.3
+- pandas==0.24.0
+- python=3.6.4
+- xlrd==1.1.0
